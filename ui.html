@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express API Frontend</title>
+</head>
+<body>
+  
+    <input type="text" id="messageInput" placeholder="Enter your message">
+    <button onclick="generateURL()">Generate</button>
+    <p id="result"></p>
+
+    <script>
+        async function generateURL() {
+            const message = document.getElementById("messageInput").value;
+            
+            if (!message) {
+                alert("Please enter a message");
+                return;
+            }
+
+            try {
+                const response = await fetch("http://localhost:3000/generate-url", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message }) // ✅ Sending data as JSON
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById("result").innerText = "Error: " + data.error;
+                } else {
+                    document.getElementById("result").innerHTML = 
+                        `<strong>Generated URL:</strong> <a href="${data.uniqueURL}" target="_blank">${data.uniqueURL}</a>`;
+                }
+
+            } catch (error) {
+                console.error("Error:", error);
+                document.getElementById("result").innerText = "Error connecting to server!";
+            }
+        }
+    </script>
+</body>
+</html>
