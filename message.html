@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Message</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #message {
+            font-size: 20px;
+            font-weight: bold;
+            color: darkblue;
+            border: 2px solid black;
+            padding: 10px;
+            display: inline-block;
+            background: lightyellow;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Message:</h2>
+    <p id="message">Loading...</p>
+
+    <script>
+        async function fetchMessage() {
+            const params = new URLSearchParams(window.location.search);
+            const url = params.get("url");
+
+            if (!url) {
+                document.getElementById("message").innerText = "Invalid URL!";
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/message/${url}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    document.getElementById("message").innerText = data.error;
+                } else {
+                    document.getElementById("message").innerText = data.message;
+                }
+            } catch (error) {
+                document.getElementById("message").innerText = "Error fetching message!";
+            }
+        }
+
+        fetchMessage();
+    </script>
+</body>
+</html>

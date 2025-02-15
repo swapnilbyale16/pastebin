@@ -3,18 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Express API Frontend</title>
+    <title>Generate URL</title>
+    <style>
+        #publicUrls {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            width: 250px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        #publicUrls a {
+            color: yellow;
+            display: block;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
-  
+
     <input type="text" id="messageInput" placeholder="Enter your message">
+    <select id="visibility">
+        <option value="public">Public</option>
+        <option value="private">Private</option>
+    </select>
     <button onclick="generateURL()">Generate</button>
     <p id="result"></p>
+
+    <div id="publicUrls">
+        <h4>Public URLs</h4>
+        <div id="urlList">Loading...</div>
+    </div>
 
     <script>
         async function generateURL() {
             const message = document.getElementById("messageInput").value;
-            
+            const visibility = document.getElementById("visibility").value;
+
             if (!message) {
                 alert("Please enter a message");
                 return;
@@ -23,26 +52,51 @@
             try {
                 const response = await fetch("http://localhost:3000/generate-url", {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ message }) // ✅ Sending data as JSON
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ message, visibility })
                 });
 
                 const data = await response.json();
-                
+
                 if (data.error) {
                     document.getElementById("result").innerText = "Error: " + data.error;
                 } else {
                     document.getElementById("result").innerHTML = 
-                        `<strong>Generated URL:</strong> <a href="${data.uniqueURL}" target="_blank">${data.uniqueURL}</a>`;
+                        `<strong>Generated URL:</strong> 
+                        <a href="message.html?url=${data.uniqueURL}" target="_blank">${data.uniqueURL}</a>`;
+                    
+                    fetchPublicUrls(); // Refresh public URLs
                 }
-
             } catch (error) {
                 console.error("Error:", error);
                 document.getElementById("result").innerText = "Error connecting to server!";
             }
         }
+
+        async function fetchPublicUrls() {
+            try {
+                const response = await fetch("http://localhost:3000/get-public-urls");
+                const urls = await response.json();
+
+                const urlList = document.getElementById("urlList");
+                urlList.innerHTML = "";
+
+                if (urls.error) {
+                    urlList.innerText = urls.error;
+                } else {
+                    urls.forEach(urlObj => {
+                        urlList.innerHTML += 
+                            `<a href="message.html?url=${urlObj.url}" target="_blank">${urlObj.url}</a>`;
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching public URLs:", error);
+            }
+        }
+
+        fetchPublicUrls();
+        setInterval(fetchPublicUrls, 5000); // Refresh public URLs every 5 seconds
     </script>
+
 </body>
 </html>
